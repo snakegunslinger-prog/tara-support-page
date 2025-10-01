@@ -1,0 +1,190 @@
+<!-- =====================================================================
+File: index.html
+Purpose: Landing page to "Join a TaraJusLigo list" and collect phone, email,
+first & last name. Sends data to /api/emailoctopus (serverless endpoint).
+
+IMPORTANT: Do NOT put your EmailOctopus API key in this file. Set the
+following environment variables on the server (Vercel settings):
+  EMAILOCTOPUS_API_KEY
+  EMAILOCTOPUS_LIST_ID
+
+This HTML posts to /api/emailoctopus with JSON: { email, firstName, lastName, phone }
+The server-side API (provided below in comment) maps those to EmailOctopus fields.
+===================================================================== -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join a TaraJusLigo List — Get a Free Grinder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>html{scroll-behavior:smooth}</style>
+</head>
+<body class="min-h-screen bg-[#0f0f10] text-zinc-100">
+  <!-- Header -->
+  <header class="sticky top-0 z-50 border-b border-white/10 bg-black/60 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <a href="#top" class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 shadow-inner"></div>
+        <span class="text-sm font-extrabold tracking-wider text-white">TARA<span class="text-amber-400">JUS</span>LIGO</span>
+      </a>
+      <a href="https://www.instagram.com/TaraJusLigo" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 rounded-xl border border-amber-400/30 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="IG" class="h-4 w-4" />
+        @TaraJusLigo
+      </a>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main id="top" class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-8">
+      <h1 class="mb-3 text-3xl font-bold text-white">Join a <span class="text-amber-400">TaraJusLigo</span> list</h1>
+      <p class="mb-6 text-sm text-zinc-300">Drop your phone number, email address, first name and last name so I can get in contact with you and send you the SoFi link. After you complete the one-time $50 deposit and send me a screenshot (DM me on Instagram or email), I'll send you a code to get your free grinder on eBay — including shipping.</p>
+
+      <div class="mb-6 rounded-xl border border-white/10 bg-black/20 p-4">
+        <strong class="block mb-2 text-sm text-amber-300">How it works (summary)</strong>
+        <ol class="ml-4 list-decimal text-sm text-zinc-200">
+          <li>I'll send you my SoFi referral link after you sign up here.</li>
+          <li>Click the link, open SoFi, and make a one-time $50 deposit (it's your money).</li>
+          <li>DM me on Instagram or email a screenshot of the confirmation.</li>
+          <li>I'll send you an eBay discount code to claim your free grinder (product + shipping covered).</li>
+        </ol>
+        <p class="mt-2 text-xs text-zinc-400">Note: You must use the link I send you and complete the $50 deposit to qualify.</p>
+      </div>
+
+      <!-- Form -->
+      <form id="join-form" class="grid grid-cols-1 gap-3 sm:grid-cols-2" novalidate>
+        <input id="first-name" name="firstName" required placeholder="First name" class="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm placeholder:text-zinc-500 focus:border-amber-400/40" />
+        <input id="last-name" name="lastName" required placeholder="Last name" class="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm placeholder:text-zinc-500 focus:border-amber-400/40" />
+        <input id="phone" name="phone" required placeholder="Phone number (include country code)" class="sm:col-span-2 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm placeholder:text-zinc-500 focus:border-amber-400/40" />
+        <input id="email" name="email" type="email" required placeholder="Email address" class="sm:col-span-2 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm placeholder:text-zinc-500 focus:border-amber-400/40" />
+
+        <!-- Honeypot for bots -->
+        <input id="hp" type="text" class="hidden" tabindex="-1" autocomplete="off" />
+
+        <div class="sm:col-span-2 flex items-center gap-3">
+          <button id="submit" type="submit" class="inline-flex items-center justify-center rounded-2xl border border-rose-400/30 bg-rose-500/90 px-5 py-3 font-semibold text-black">Join the List</button>
+          <a href="https://www.ebay.com/str/wer3d" target="_blank" class="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white">Shop on eBay</a>
+        </div>
+
+        <p id="error" class="mt-2 sm:col-span-2 hidden text-xs text-rose-300" aria-live="polite"></p>
+        <p id="success" class="mt-2 sm:col-span-2 hidden rounded-md border border-emerald-400/30 bg-emerald-500/10 p-3 text-sm text-zinc-200" aria-live="polite"></p>
+      </form>
+
+      <p class="mt-4 text-xs text-zinc-400">Or DM me on Instagram @TaraJusLigo if you'd rather talk directly.</p>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/10 bg-black/60 py-8">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
+      <p class="text-xs text-zinc-400">© <span id="year"></span> TaraJusLigo. All rights reserved.</p>
+      <div class="text-xs text-zinc-400">Made with ❤️ in Vegas</div>
+    </div>
+  </footer>
+
+  <script>
+    // Basic DOM refs
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const form = document.getElementById('join-form');
+    const firstEl = document.getElementById('first-name');
+    const lastEl = document.getElementById('last-name');
+    const phoneEl = document.getElementById('phone');
+    const emailEl = document.getElementById('email');
+    const hpEl = document.getElementById('hp');
+    const submitBtn = document.getElementById('submit');
+    const errorEl = document.getElementById('error');
+    const successEl = document.getElementById('success');
+
+    function showError(msg){ errorEl.textContent = msg; errorEl.classList.remove('hidden'); }
+    function clearError(){ errorEl.textContent=''; errorEl.classList.add('hidden'); }
+    function showSuccess(msg){ successEl.textContent = msg; successEl.classList.remove('hidden'); }
+
+    function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || ''); }
+    function validPhone(v){ return v && v.length >= 7; }
+
+    if(form){
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault(); clearError(); successEl.classList.add('hidden');
+        const first = (firstEl && firstEl.value || '').trim();
+        const last = (lastEl && lastEl.value || '').trim();
+        const phone = (phoneEl && phoneEl.value || '').trim();
+        const email = (emailEl && emailEl.value || '').trim();
+        const hp = (hpEl && hpEl.value || '').trim(); if(hp) return; // bot
+
+        if(!first || !last){ showError('Please enter first and last name.'); return; }
+        if(!validPhone(phone)){ showError('Please enter a valid phone number.'); return; }
+        if(!validEmail(email)){ showError('Please enter a valid email address.'); return; }
+
+        submitBtn && submitBtn.setAttribute('disabled','true');
+        try{
+          const res = await fetch('/api/emailoctopus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName: first, lastName: last, phone, email })
+          });
+          const data = await res.json().catch(() => ({}));
+          if(!res.ok) throw new Error(data && data.message || 'Unable to submit.');
+          showSuccess('Thanks — I got your info. I will DM you the SoFi link. After you deposit $50 and send me a screenshot, I will email or DM the eBay code for your free grinder.');
+          form.reset();
+        }catch(err){ showError(err && err.message || 'Submission failed.'); }
+        finally{ submitBtn && submitBtn.removeAttribute('disabled'); }
+      });
+    }
+
+    // Inline validation tests
+    ;(function(){
+      console.assert(validEmail('tara@example.com') === true);
+      console.assert(validPhone('1234567') === true);
+      console.assert(validPhone('') === false);
+    })();
+  </script>
+
+  <!-- Serverless API (place in your project at /api/emailoctopus.js or .ts) -->
+  <!-- DO NOT include this in client-side HTML; it's shown here for convenience. -->
+  <script type="text/plain" data-filename="/api/emailoctopus.js">
+export const config = { runtime: 'edge' };
+
+export default async function handler(req) {
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ message: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  try {
+    const { email, firstName, lastName, phone } = await req.json();
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return new Response(JSON.stringify({ message: 'Invalid email' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    const API_KEY = process.env.EMAILOCTOPUS_API_KEY;
+    const LIST_ID = process.env.EMAILOCTOPUS_LIST_ID;
+    if (!API_KEY || !LIST_ID) {
+      return new Response(JSON.stringify({ message: 'Server not configured: missing API key or list ID.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // Map fields to EmailOctopus fields (create custom fields in your EmailOctopus list named: FirstName, LastName, Phone)
+    const payload = {
+      api_key: API_KEY,
+      email_address: email,
+      status: 'SUBSCRIBED',
+      fields: { FirstName: firstName || '', LastName: lastName || '', Phone: phone || '' }
+    };
+
+    const resp = await fetch(`https://emailoctopus.com/api/1.6/lists/${LIST_ID}/contacts`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) {
+      return new Response(JSON.stringify({ message: (data && data.error && data.error.message) || 'EmailOctopus error' }), { status: resp.status, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  } catch (err) {
+    return new Response(JSON.stringify({ message: (err && err.message) || 'Unexpected error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  }
+}
+  </script>
+
+</body>
+</html>
